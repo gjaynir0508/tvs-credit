@@ -1,8 +1,8 @@
 from langchain_ollama import ChatOllama
 from langchain_core.messages import HumanMessage, SystemMessage,AIMessage
 
-def chat(prompt="You are a helpful assistant! Your name is skibidi. And make sure to mkae the response as small and dense as possible. Just answer the asked question",
-         model="phi3:mini-128k")->None:
+def chat(prompt="You are a helpful assistant!",
+         model="llama3.1:8b")->None:
 
     model = ChatOllama(model=model,temperature=0)
     content = [
