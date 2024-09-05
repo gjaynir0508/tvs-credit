@@ -1,14 +1,20 @@
+from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from pymongo import MongoClient
 import ollama
 
+app = FastAPI()
 
-client = MongoClient("mongodb://localhost:27017/")  # Replace with your MongoDB URI
-db = client["your_database_name"]  # Replace with your database name
-collection = db["your_collection_name"]  # Replace with your collection name
+
+# Replace with your MongoDB URI
+client = MongoClient("mongodb://localhost:27017/")
+db = client["tvs-credit"]  # Replace with your database name
+collection = db["leads"]  # Replace with your collection name
+
 
 class QueryRequest(BaseModel):
     query: str
+
 
 def translate_query(user_query: str):
     """
@@ -17,11 +23,14 @@ def translate_query(user_query: str):
     try:
         response = ollama.generate(model="phi-3", prompt=user_query)
         translated_query = response.strip()
-        mongo_query = eval(translated_query)  # WARNING: eval() is risky; consider using a safer parser
+        # WARNING: eval() is risky; consider using a safer parser for production
+        mongo_query = eval(translated_query)
     except Exception as e:
-        raise HTTPException(status_code=400, detail="Failed to translate query using the LLM.")
-    
+        raise HTTPException(
+            status_code=400, detail="Failed to translate query using the LLM.")
+
     return mongo_query
+
 
 def execute_query(query: dict):
     """
@@ -31,7 +40,9 @@ def execute_query(query: dict):
         results = collection.find(query)
         return list(results)
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Database query failed: {e}")
+        raise HTTPException(
+            status_code=500, detail=f"Database query failed: {e}")
+
 
 @app.post("/retrieve")
 async def retrieve_info(request: QueryRequest):
